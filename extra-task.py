@@ -2,6 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
+
+def write_to_csv(data:dict):
+    with open('data.csv', 'a') as file:
+        write = csv.writer(file)
+        write.writerows(data)  
+
 def parse_page(url):
     try:
         response = requests.get(url)
@@ -10,6 +16,8 @@ def parse_page(url):
         soup = BeautifulSoup(response.text, 'html.parser')
         
         cars = soup.find('div', class_='catalog-list').find_all('a')
+
+        data = []  
 
         for car in cars:
             try:
@@ -33,25 +41,18 @@ def parse_page(url):
             else:
                 img = ''
 
-            data = {
-                'title': title,
-                'price': price,
-                'desc': desc,
-                'img': img
-            }
+            car_data = [title, price, desc, img]
+            data.append(car_data)  
 
-            write_to_csv(data)
+        write_to_csv(data)  
 
     except requests.RequestException as e:
-        print(f"Ошибка запроса: {e}")
+        print(f"ошибка запроса: {e}")
 
-def write_to_csv(data):
-    with open('data.csv', 'a', newline='', encoding='utf-8') as file:
-        write = csv.writer(file)
-        write.writerow((data['title'], data['price'], data['img'], data['desc']))
 
 base_url = 'https://cars.kg/offers?page='
 
-for page_number in range(1, 100):
+for page_number in range(1, 105):
     url = f'{base_url}{page_number}'
     parse_page(url)
+    
