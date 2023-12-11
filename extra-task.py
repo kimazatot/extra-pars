@@ -2,11 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
-
-def write_to_csv(data:dict):
+def write_to_csv(data_list):
     with open('data.csv', 'a') as file:
-        write = csv.writer(file)
-        write.writerows(data)  
+        csv_writer = csv.writer(file)
+        csv_writer.writerows(data_list)
 
 def parse_page(url):
     try:
@@ -15,44 +14,42 @@ def parse_page(url):
 
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        cars = soup.find('div', class_='catalog-list').find_all('a')
+        car_list = soup.find('div', class_='catalog-list').find_all('a')
 
         data = []  
 
-        for car in cars:
+        for car in car_list:
             try:
-                title = car.find('span', class_='catalog-item-caption').text.strip()
+                car_title = car.find('span', class_='catalog-item-caption').text.strip()
             except AttributeError:
-                title = ''
+                car_title = ''
 
             try:
-                price = car.find('span', class_='catalog-item-price').text.strip()
+                car_price = car.find('span', class_='catalog-item-price').text.strip()
             except AttributeError:
-                price = ''
+                car_price = ''
 
             try:
-                desc = car.find('span', class_='catalog-item-descr').text.strip()
+                car_desc = car.find('span', class_='catalog-item-descr').text.strip()
             except AttributeError:
-                desc = ''
+                car_desc = ''
 
-            img = car.find('img')
-            if img:
-                img = img.get('src', '')
+            car_img = car.find('img')
+            if car_img:
+                car_img = car_img.get('src', '')
             else:
-                img = ''
+                car_img = ''
 
-            car_data = [title, price, desc, img]
-            data.append(car_data)  
+            car_data = [car_title, car_price, car_desc, car_img]
+            data.append(car_data)
 
-        write_to_csv(data)  
+        write_to_csv(data)
 
     except requests.RequestException as e:
         print(f"ошибка запроса: {e}")
 
-
 base_url = 'https://cars.kg/offers?page='
 
-for page_number in range(1, 105):
-    url = f'{base_url}{page_number}'
+for page_num in range(1, 105):
+    url = f'{base_url}{page_num}'
     parse_page(url)
-    
