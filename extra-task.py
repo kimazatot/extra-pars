@@ -3,9 +3,10 @@ from bs4 import BeautifulSoup
 import csv
 
 def write_to_csv(data_list):
-    with open('data.csv', 'a') as file:
+    with open('data.csv', 'a', newline='') as file:
         csv_writer = csv.writer(file)
-        csv_writer.writerows(data_list)
+        for data in data_list:
+            csv_writer.writerow(data)
 
 def parse_page(url):
     try:
@@ -20,36 +21,44 @@ def parse_page(url):
 
         for car in car_list:
             try:
-                car_title = car.find('span', class_='catalog-item-caption').text.strip()
+                title = car.find('span', class_='catalog-item-caption').text.strip()
             except AttributeError:
-                car_title = ''
+                title = ''
 
             try:
-                car_price = car.find('span', class_='catalog-item-price').text.strip()
+                price = car.find('span', class_='catalog-item-price').text.strip()
             except AttributeError:
-                car_price = ''
+                price = ''
 
             try:
-                car_desc = car.find('span', class_='catalog-item-descr').text.strip()
+                desc = car.find('span', class_='catalog-item-descr').text.strip()
             except AttributeError:
-                car_desc = ''
+                desc = ''
 
-            car_img = car.find('img')
-            if car_img:
-                car_img = car_img.get('src', '')
+            img = car.find('img')
+            if img:
+                img = img.get('src', '')
             else:
-                car_img = ''
+                img = ''
 
-            car_data = [car_title, car_price, car_desc, car_img]
+            car_data = [title, price, desc, img]
             data.append(car_data)
 
         write_to_csv(data)
 
+        return True  
+
     except requests.RequestException as e:
         print(f"ошибка запроса: {e}")
+        return False  
 
 base_url = 'https://cars.kg/offers?page='
 
-for page_num in range(1, 105):
+page_num = 1
+while True:
     url = f'{base_url}{page_num}'
-    parse_page(url)
+    success = parse_page(url)
+
+    if not success:  
+        break
+    page_num += 1
